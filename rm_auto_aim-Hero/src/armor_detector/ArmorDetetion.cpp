@@ -16,9 +16,9 @@ ArmorDetetion::ArmorDetetion()
     }
 }
 
-bool ArmorDetetion::FindLight(Mat& src)
+bool ArmorDetetion::FindLight(cv::Mat& src)
 {
-    Mat src_ = src.clone();
+    cv::Mat src_ = src.clone();
 
     // 每次处理的是一帧中的图像，每次寻找前注意清空
     lights_.clear();
@@ -46,11 +46,11 @@ bool ArmorDetetion::FindLight(Mat& src)
     {
         for (auto light_ : lights_)
         {
-            Point2f light_points[4];
+            cv::Point2f light_points[4];
             light_.points(light_points);
             for (size_t i = 0; i < 4; i++)
             {
-                line(this->src_, light_points[i], light_points[(i + 1) % 4], Scalar(0, 255, 0), 2, 8);
+                line(this->src_, light_points[i], light_points[(i + 1) % 4], cv::Scalar(0, 255, 0), 2, 8);
             }
             //imshow("light", this->src_);
 //            std::cout << "light numbers: " << lights_.size() << std::endl;
@@ -83,7 +83,7 @@ bool ArmorDetetion::IsLight(const Light& light)
     return is_light;
 }
 
-bool ArmorDetetion::FindArmor(Mat& src)
+bool ArmorDetetion::FindArmor(cv::Mat& src)
 {
     // 每次处理的是一帧中的图像，每次寻找前注意清空
     armors_.clear();

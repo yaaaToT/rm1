@@ -153,10 +153,24 @@ CMakeFiles/rm_auto_aim-Hero.dir/src/Resolver/Resolver.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/rm_auto_aim-Hero.dir/src/Resolver/Resolver.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/yaaa/rm_auto_aim-Hero/src/Resolver/Resolver.cpp -o CMakeFiles/rm_auto_aim-Hero.dir/src/Resolver/Resolver.cpp.s
 
+CMakeFiles/rm_auto_aim-Hero.dir/src/SerialPort/SerialPort.cpp.o: CMakeFiles/rm_auto_aim-Hero.dir/flags.make
+CMakeFiles/rm_auto_aim-Hero.dir/src/SerialPort/SerialPort.cpp.o: ../src/SerialPort/SerialPort.cpp
+CMakeFiles/rm_auto_aim-Hero.dir/src/SerialPort/SerialPort.cpp.o: CMakeFiles/rm_auto_aim-Hero.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/yaaa/rm_auto_aim-Hero/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/rm_auto_aim-Hero.dir/src/SerialPort/SerialPort.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/rm_auto_aim-Hero.dir/src/SerialPort/SerialPort.cpp.o -MF CMakeFiles/rm_auto_aim-Hero.dir/src/SerialPort/SerialPort.cpp.o.d -o CMakeFiles/rm_auto_aim-Hero.dir/src/SerialPort/SerialPort.cpp.o -c /home/yaaa/rm_auto_aim-Hero/src/SerialPort/SerialPort.cpp
+
+CMakeFiles/rm_auto_aim-Hero.dir/src/SerialPort/SerialPort.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/rm_auto_aim-Hero.dir/src/SerialPort/SerialPort.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/yaaa/rm_auto_aim-Hero/src/SerialPort/SerialPort.cpp > CMakeFiles/rm_auto_aim-Hero.dir/src/SerialPort/SerialPort.cpp.i
+
+CMakeFiles/rm_auto_aim-Hero.dir/src/SerialPort/SerialPort.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/rm_auto_aim-Hero.dir/src/SerialPort/SerialPort.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/yaaa/rm_auto_aim-Hero/src/SerialPort/SerialPort.cpp -o CMakeFiles/rm_auto_aim-Hero.dir/src/SerialPort/SerialPort.cpp.s
+
 CMakeFiles/rm_auto_aim-Hero.dir/src/Tracker/Tracker.cpp.o: CMakeFiles/rm_auto_aim-Hero.dir/flags.make
 CMakeFiles/rm_auto_aim-Hero.dir/src/Tracker/Tracker.cpp.o: ../src/Tracker/Tracker.cpp
 CMakeFiles/rm_auto_aim-Hero.dir/src/Tracker/Tracker.cpp.o: CMakeFiles/rm_auto_aim-Hero.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/yaaa/rm_auto_aim-Hero/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/rm_auto_aim-Hero.dir/src/Tracker/Tracker.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/yaaa/rm_auto_aim-Hero/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/rm_auto_aim-Hero.dir/src/Tracker/Tracker.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/rm_auto_aim-Hero.dir/src/Tracker/Tracker.cpp.o -MF CMakeFiles/rm_auto_aim-Hero.dir/src/Tracker/Tracker.cpp.o.d -o CMakeFiles/rm_auto_aim-Hero.dir/src/Tracker/Tracker.cpp.o -c /home/yaaa/rm_auto_aim-Hero/src/Tracker/Tracker.cpp
 
 CMakeFiles/rm_auto_aim-Hero.dir/src/Tracker/Tracker.cpp.i: cmake_force
@@ -170,7 +184,7 @@ CMakeFiles/rm_auto_aim-Hero.dir/src/Tracker/Tracker.cpp.s: cmake_force
 CMakeFiles/rm_auto_aim-Hero.dir/src/outpost/outpost.cpp.o: CMakeFiles/rm_auto_aim-Hero.dir/flags.make
 CMakeFiles/rm_auto_aim-Hero.dir/src/outpost/outpost.cpp.o: ../src/outpost/outpost.cpp
 CMakeFiles/rm_auto_aim-Hero.dir/src/outpost/outpost.cpp.o: CMakeFiles/rm_auto_aim-Hero.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/yaaa/rm_auto_aim-Hero/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/rm_auto_aim-Hero.dir/src/outpost/outpost.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/yaaa/rm_auto_aim-Hero/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/rm_auto_aim-Hero.dir/src/outpost/outpost.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/rm_auto_aim-Hero.dir/src/outpost/outpost.cpp.o -MF CMakeFiles/rm_auto_aim-Hero.dir/src/outpost/outpost.cpp.o.d -o CMakeFiles/rm_auto_aim-Hero.dir/src/outpost/outpost.cpp.o -c /home/yaaa/rm_auto_aim-Hero/src/outpost/outpost.cpp
 
 CMakeFiles/rm_auto_aim-Hero.dir/src/outpost/outpost.cpp.i: cmake_force
@@ -189,6 +203,7 @@ rm_auto_aim__Hero_OBJECTS = \
 "CMakeFiles/rm_auto_aim-Hero.dir/src/kalmanfilter/KalmanFilter.cpp.o" \
 "CMakeFiles/rm_auto_aim-Hero.dir/src/Resolver/GimbalControl.cpp.o" \
 "CMakeFiles/rm_auto_aim-Hero.dir/src/Resolver/Resolver.cpp.o" \
+"CMakeFiles/rm_auto_aim-Hero.dir/src/SerialPort/SerialPort.cpp.o" \
 "CMakeFiles/rm_auto_aim-Hero.dir/src/Tracker/Tracker.cpp.o" \
 "CMakeFiles/rm_auto_aim-Hero.dir/src/outpost/outpost.cpp.o"
 
@@ -201,6 +216,7 @@ rm_auto_aim-Hero: CMakeFiles/rm_auto_aim-Hero.dir/src/armor_detector/armor.cpp.o
 rm_auto_aim-Hero: CMakeFiles/rm_auto_aim-Hero.dir/src/kalmanfilter/KalmanFilter.cpp.o
 rm_auto_aim-Hero: CMakeFiles/rm_auto_aim-Hero.dir/src/Resolver/GimbalControl.cpp.o
 rm_auto_aim-Hero: CMakeFiles/rm_auto_aim-Hero.dir/src/Resolver/Resolver.cpp.o
+rm_auto_aim-Hero: CMakeFiles/rm_auto_aim-Hero.dir/src/SerialPort/SerialPort.cpp.o
 rm_auto_aim-Hero: CMakeFiles/rm_auto_aim-Hero.dir/src/Tracker/Tracker.cpp.o
 rm_auto_aim-Hero: CMakeFiles/rm_auto_aim-Hero.dir/src/outpost/outpost.cpp.o
 rm_auto_aim-Hero: CMakeFiles/rm_auto_aim-Hero.dir/build.make
@@ -220,7 +236,7 @@ rm_auto_aim-Hero: /usr/local/lib/libopencv_flann.so.4.5.4
 rm_auto_aim-Hero: /usr/local/lib/libopencv_imgproc.so.4.5.4
 rm_auto_aim-Hero: /usr/local/lib/libopencv_core.so.4.5.4
 rm_auto_aim-Hero: CMakeFiles/rm_auto_aim-Hero.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/yaaa/rm_auto_aim-Hero/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Linking CXX executable rm_auto_aim-Hero"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/yaaa/rm_auto_aim-Hero/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Linking CXX executable rm_auto_aim-Hero"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/rm_auto_aim-Hero.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

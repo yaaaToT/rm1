@@ -9,12 +9,12 @@
 class ArmorDetetion {
 public:
     ArmorDetetion();
-    void Image_init(Mat& src){src_=src.clone();};
+    void Image_init(cv::Mat& src){src_=src.clone();};
     // 寻找灯条
-    bool FindLight(Mat &src);
+    bool FindLight(cv::Mat &src);
     bool IsLight(const Light& light);
     // 寻找装甲板
-    bool FindArmor(Mat &src);
+    bool FindArmor(cv::Mat &src);
     bool IsArmor(Armor & armor);
 
     // 数字识别
@@ -37,7 +37,7 @@ public:
     EnemyColor enemy_color;
 
     // 原始图像
-    Mat src_;
+    cv::Mat src_;
 
 private:
     // 数字识别属性

@@ -8,7 +8,7 @@
 #include"../debug.h"
 #include "opencv2/opencv.hpp"
 #include"eigen3/Eigen/Eigen"
-using namespace cv;
+
 
 struct Light : public cv::RotatedRect
 {
@@ -94,7 +94,7 @@ struct Armor : public Light {
     }
 
     Light extendLight(const Light & light);
-    void sortLightPoints(Point2f points[4],std::vector<cv::Point2f>& new_points);
+    void sortLightPoints(cv::Point2f points[4],std::vector<cv::Point2f>& new_points);
     // before
     Light                    left_light, right_light;
     cv::Point2f              center;
@@ -106,7 +106,7 @@ struct Armor : public Light {
     std::string number;      // 数字结果
     float confidence;        // 置信度
     std::string classfication_result;
-    Mat   number_img;       // 48*48的二值化数字图像
+    cv::Mat   number_img;       // 48*48的二值化数字图像
     ArmorType type;
 
     // resolver
@@ -116,6 +116,28 @@ struct Armor : public Light {
 
     int score;      // 击打评分
 };
+
+class ArmorBlob{
+    public:
+        ArmorBlob(){
+            corners = std::vector<cv::Point2f>(4);
+        }
+        double confidence;
+        cv::Rect rect;
+        std::vector<cv::Point2f> corners;
+        int _class;
+        double angle;
+        double x, y, z;
+        bool is_big_armor;
+        // 重载小于号，用于set，按(x,y,z)到(0,0,0)的距离排序
+        bool operator < (const ArmorBlob& a) const
+        {
+            return x * x + y * y + z * z < a.x * a.x + a.y * a.y + a.z * a.z;
+        }
+
+    };
+
+    typedef std::vector<ArmorBlob> ArmorBlobs;
 
 
 #endif //DESIGN_ARMOR_H

@@ -5,6 +5,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/rm_auto_aim-Hero.dir/src/Resolver/GimbalControl.cpp.o.d"
   "CMakeFiles/rm_auto_aim-Hero.dir/src/Resolver/Resolver.cpp.o"
   "CMakeFiles/rm_auto_aim-Hero.dir/src/Resolver/Resolver.cpp.o.d"
+  "CMakeFiles/rm_auto_aim-Hero.dir/src/SerialPort/SerialPort.cpp.o"
+  "CMakeFiles/rm_auto_aim-Hero.dir/src/SerialPort/SerialPort.cpp.o.d"
   "CMakeFiles/rm_auto_aim-Hero.dir/src/Tracker/Tracker.cpp.o"
   "CMakeFiles/rm_auto_aim-Hero.dir/src/Tracker/Tracker.cpp.o.d"
   "CMakeFiles/rm_auto_aim-Hero.dir/src/armor_detector/ArmorDetetion.cpp.o"

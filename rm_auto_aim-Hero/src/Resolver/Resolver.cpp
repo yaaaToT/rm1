@@ -39,7 +39,7 @@ void Resolver::SetWorldPoints(ArmorType armor_type)
 
 void Resolver::SolvePNP(Armor& armor)
 {
-    solvePnP(points_in_world,armor.armor_points,CameraMatrix_,DistCoeffs_,rotate_mat,trans_mat,false,SOLVEPNP_AP3P);
+    solvePnP(points_in_world,armor.armor_points,CameraMatrix_,DistCoeffs_,rotate_mat,trans_mat,false,cv::SOLVEPNP_AP3P);
 
     // 设置平移部分
     armor.pose.translation().x()=trans_mat.ptr<double>(0)[0];

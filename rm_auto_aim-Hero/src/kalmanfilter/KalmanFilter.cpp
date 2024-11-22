@@ -3,7 +3,7 @@
 //
 
 #include "../../include/kalmanfilter/KalmanFilter.h"
-using namespace cv;
+
 
 Kalmanfilter::Kalmanfilter()
 {
@@ -13,13 +13,13 @@ Kalmanfilter::Kalmanfilter()
 
     KF = cv::KalmanFilter(stateNum, measureNum, controlNum, CV_32F);
 
-    statement   = Mat::zeros(stateNum,1,CV_32F);
-    measurement = Mat::zeros(measureNum, 1, CV_32F);
+    statement   = cv::Mat::zeros(stateNum,1,CV_32F);
+    measurement = cv::Mat::zeros(measureNum, 1, CV_32F);
 
 
-    setIdentity(KF.transitionMatrix, Scalar(1));
+    setIdentity(KF.transitionMatrix, cv::Scalar(1));
 
-    KF.measurementMatrix = Mat::zeros(measureNum, stateNum, CV_32F);
+    KF.measurementMatrix = cv::Mat::zeros(measureNum, stateNum, CV_32F);
 
 
     KF.measurementMatrix = (cv::Mat_<float>(2, 6) <<1,0,0,0,0,0,0,1,0,0,0,0);  //测量矩阵H
@@ -32,16 +32,16 @@ Kalmanfilter::Kalmanfilter()
     KF.processNoiseCov.at<float>(28) = 10.0f;
     KF.processNoiseCov.at<float>(35) = 10.0f;
 
-    setIdentity(KF.measurementNoiseCov, Scalar(100));  //测量噪声方差矩阵R
+    setIdentity(KF.measurementNoiseCov, cv::Scalar(100));  //测量噪声方差矩阵R
 
-    setIdentity(KF.errorCovPost, Scalar::all(1));    //后验错误估计协方差矩阵P
+    setIdentity(KF.errorCovPost, cv::Scalar::all(1));    //后验错误估计协方差矩阵P
 }
 
 Kalmanfilter::~Kalmanfilter() {}
 
 void Kalmanfilter::InitKalman(){
 
-    setIdentity(KF.errorCovPre, Scalar(1));  //  6*6矩阵
+    setIdentity(KF.errorCovPre, cv::Scalar(1));  //  6*6矩阵
 
     // 初始化 状态向量
     statement.at<float>(0) = gain_yaw + send_yaw;

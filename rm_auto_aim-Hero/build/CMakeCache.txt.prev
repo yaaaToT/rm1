@@ -209,8 +209,14 @@ CMAKE_STRIP:FILEPATH=/usr/bin/strip
 // Studio IDE projects all commands are done without /nologo.
 CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 
+//The directory containing a CMake configuration file for Eigen3.
+Eigen3_DIR:PATH=/usr/local/share/eigen3/cmake
+
 //The directory containing a CMake configuration file for OpenCV.
 OpenCV_DIR:PATH=/usr/local/lib/cmake/opencv4
+
+//The directory containing a CMake configuration file for Sophus.
+Sophus_DIR:PATH=/usr/local/share/sophus/cmake
 
 //Value Computed by CMake
 rm_auto_aim-Hero_BINARY_DIR:STATIC=/home/yaaa/rm_auto_aim-Hero/build

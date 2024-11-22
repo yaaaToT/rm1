@@ -11,14 +11,12 @@
 #include <iostream>
 #include <ctime>
 
-using namespace std;
-using namespace cv;
 
 pthread_t ImagePro;
 //pthread_t Serial;
 
 //Mat              src;
-Mat              Preprocess_image;
+cv::Mat              Preprocess_image;
 Trackers         track_obj;     // 追踪器对象
 Resolver         resolver_obj;  // 解算器对象
 Kalmanfilter     kalman;        // 卡尔曼对象
@@ -73,13 +71,13 @@ void* ImageProcess(void*)
 {
     //camera.runCamera();
     //测试
-    //VideoCapture cap("/home/yaaa/下载/mmexport1717936871988(1).mp4");
+    cv::VideoCapture cap("/home/yaaa/下载/mmexport1717936871988(1).mp4");
     
     //VideoCapture cap("/home/yaaa/下载/2b9f0543-a397-4cfb-a031-cd3c563483c8.mp4");
     //VideoCapture cap("/home/yaaa/下载/f37bdc35-7d1f-47e7-aae0-d45d249f72f4.mp4");
 
     //前哨站
-    VideoCapture cap("/home/yaaa/output.mp4");
+    //VideoCapture cap("/home/yaaa/output.mp4");
     //VideoCapture cap("/home/yaaa/下载/0.mp4");
 
 
@@ -102,10 +100,10 @@ void* ImageProcess(void*)
     int roiHeight = 250;
 
     //VideoWriter writer(output_path,VideoWriter::fourcc('a','v','c','1'),60,Size(frameWidth,frameHeight),true);
-    Mat src;
+    cv::Mat src;
     while (true)
     {
-        Mat                                   temp(image_height, image_width, CV_8UC3, Scalar(0, 0, 0));
+        cv::Mat                                   temp(image_height, image_width, CV_8UC3, cv::Scalar(0, 0, 0));
         std::chrono::steady_clock::time_point time1 = std::chrono::steady_clock::now();
        
         //camera.Do();
@@ -138,8 +136,8 @@ void* ImageProcess(void*)
             //{
 
                 // 图像预处理
-                //Preprocess_image= Preprocess(src,RED);      // 强制红色模式
-                Preprocess_image = Preprocess(src, BLUE);  // 强制蓝色模式
+                Preprocess_image= Preprocess(src,RED);      // 强制红色模式
+                //Preprocess_image = Preprocess(src, BLUE);  // 强制蓝色模式
                 // Preprocess_image= Preprocess(src,static_cast<int>(MainControlInfo.color) );     // 串口接收模式
                 // 寻找灯条
                 bridge_link.FindLight(Preprocess_image);
@@ -224,9 +222,9 @@ void* ImageProcess(void*)
 
                 std::cout << "send pitch" << Pitch << std::endl;
                 std::cout << "send yaw" << Yaw << std::endl;
-                putText(src, "Yaw :" + std::to_string(Yaw), Point(4, 45), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(255, 255, 255), 1);
-                putText(src, "Pitch :" + std::to_string(Pitch), Point(4, 65), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(255, 255, 255), 1);
-                putText(src, "distance :" + std::to_string(Distance), Point(4, 85), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(255, 255, 255), 1);
+                putText(src, "Yaw :" + std::to_string(Yaw), cv::Point(4, 45), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(255, 255, 255), 1);
+                putText(src, "Pitch :" + std::to_string(Pitch), cv::Point(4, 65), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(255, 255, 255), 1);
+                putText(src, "distance :" + std::to_string(Distance), cv::Point(4, 85), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(255, 255, 255), 1);
 
 
                 /***
@@ -311,10 +309,10 @@ void* ImageProcess(void*)
             time_                                           = static_cast<float>(time_used.count());
             double fps                                      = 1.0 / time_;
 
-        putText(src, "fps :" + std::to_string(fps), Point(4, 105), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(255, 255, 255), 1);
+        putText(src, "fps :" + std::to_string(fps), cv::Point(4, 105), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(255, 255, 255), 1);
 
 
-        circle(src, Point2f(src.cols / 2, src.rows / 2), 10, Scalar(0, 255, 0), 1, 3);
+        circle(src, cv::Point2f(src.cols / 2, src.rows / 2), 10, cv::Scalar(0, 255, 0), 1, 3);
             //line(src,Point(640,0),Point(640,1024),Scalar(0,255,0));
             //line(src,Point(0,512),Point(1280,512),Scalar(0,255,0));
 
@@ -327,7 +325,7 @@ void* ImageProcess(void*)
             //writer.write(src);
             
             imshow("src", src);
-            if(waitKey(30)==27) break;
+            if(cv::waitKey(30)==27) break;
             //InfoPort.TransformTarPos(fd_serial, RobotInfo);
         }
         /*else
@@ -341,7 +339,7 @@ void* ImageProcess(void*)
     //writer.release();
     //CameraUnInit(camera.hCamera);
     //free(camera.g_pRgbBuffer);
-    destroyAllWindows();
+    cv::destroyAllWindows();
 }
 
 /*void* GetData(void*)

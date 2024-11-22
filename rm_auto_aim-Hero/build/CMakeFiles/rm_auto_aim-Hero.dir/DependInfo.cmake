@@ -11,6 +11,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/yaaa/rm_auto_aim-Hero/main.cpp" "CMakeFiles/rm_auto_aim-Hero.dir/main.cpp.o" "gcc" "CMakeFiles/rm_auto_aim-Hero.dir/main.cpp.o.d"
   "/home/yaaa/rm_auto_aim-Hero/src/Resolver/GimbalControl.cpp" "CMakeFiles/rm_auto_aim-Hero.dir/src/Resolver/GimbalControl.cpp.o" "gcc" "CMakeFiles/rm_auto_aim-Hero.dir/src/Resolver/GimbalControl.cpp.o.d"
   "/home/yaaa/rm_auto_aim-Hero/src/Resolver/Resolver.cpp" "CMakeFiles/rm_auto_aim-Hero.dir/src/Resolver/Resolver.cpp.o" "gcc" "CMakeFiles/rm_auto_aim-Hero.dir/src/Resolver/Resolver.cpp.o.d"
+  "/home/yaaa/rm_auto_aim-Hero/src/SerialPort/SerialPort.cpp" "CMakeFiles/rm_auto_aim-Hero.dir/src/SerialPort/SerialPort.cpp.o" "gcc" "CMakeFiles/rm_auto_aim-Hero.dir/src/SerialPort/SerialPort.cpp.o.d"
   "/home/yaaa/rm_auto_aim-Hero/src/Tracker/Tracker.cpp" "CMakeFiles/rm_auto_aim-Hero.dir/src/Tracker/Tracker.cpp.o" "gcc" "CMakeFiles/rm_auto_aim-Hero.dir/src/Tracker/Tracker.cpp.o.d"
   "/home/yaaa/rm_auto_aim-Hero/src/armor_detector/ArmorDetetion.cpp" "CMakeFiles/rm_auto_aim-Hero.dir/src/armor_detector/ArmorDetetion.cpp.o" "gcc" "CMakeFiles/rm_auto_aim-Hero.dir/src/armor_detector/ArmorDetetion.cpp.o.d"
   "/home/yaaa/rm_auto_aim-Hero/src/armor_detector/armor.cpp" "CMakeFiles/rm_auto_aim-Hero.dir/src/armor_detector/armor.cpp.o" "gcc" "CMakeFiles/rm_auto_aim-Hero.dir/src/armor_detector/armor.cpp.o.d"

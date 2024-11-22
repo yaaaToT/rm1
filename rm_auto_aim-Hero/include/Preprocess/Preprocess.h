@@ -3,27 +3,26 @@
 //
 #include"opencv4/opencv2/opencv.hpp"
 #include"../armor_detector/armor.h"
-using namespace cv;
 
 void FillHole(cv::Mat srcBw, cv::Mat& dstBw);
 
-Mat Preprocess(Mat & src,int enemy_color)
+cv::Mat Preprocess(cv::Mat & src,int enemy_color)
 {
-    Mat dst;
-    Mat src_show=src.clone();
+    cv::Mat dst;
+    cv::Mat src_show=src.clone();
     //Mat element = getStructuringElement(MORPH_ELLIPSE,cv::Size(5,5));
-    Mat element = getStructuringElement(MORPH_ELLIPSE,cv::Size(5,5));
+    cv::Mat element = getStructuringElement(cv::MORPH_ELLIPSE,cv::Size(5,5));
     if(enemy_color==RED)
     {
-        Mat gray_threshold;
-        std::vector<Mat> splited_channels;
+        cv::Mat gray_threshold;
+        std::vector<cv::Mat> splited_channels;
         split(src_show,splited_channels);
-        cvtColor(src_show,gray_threshold,COLOR_BGR2GRAY);
-        threshold(gray_threshold,gray_threshold,96,255,THRESH_BINARY);
+        cvtColor(src_show,gray_threshold,cv::COLOR_BGR2GRAY);
+        threshold(gray_threshold,gray_threshold,96,255,cv::THRESH_BINARY);
 
-        Mat subtract_threshold;
+        cv::Mat subtract_threshold;
         subtract(splited_channels[2],splited_channels[0],subtract_threshold);
-        threshold(subtract_threshold,subtract_threshold,112,255,THRESH_BINARY);
+        threshold(subtract_threshold,subtract_threshold,112,255,cv::THRESH_BINARY);
 
         dilate(subtract_threshold,subtract_threshold,element);
         dst = subtract_threshold & gray_threshold;
@@ -34,15 +33,15 @@ Mat Preprocess(Mat & src,int enemy_color)
     }
     else if (enemy_color==BLUE)
     {
-        Mat gray_threshold;
-        std::vector<Mat> splited_channels;
+        cv::Mat gray_threshold;
+        std::vector<cv::Mat> splited_channels;
         split(src_show,splited_channels);
-        cvtColor(src_show,gray_threshold,COLOR_BGR2GRAY);
-        threshold(gray_threshold,gray_threshold,170,255,THRESH_BINARY);
+        cvtColor(src_show,gray_threshold,cv::COLOR_BGR2GRAY);
+        threshold(gray_threshold,gray_threshold,170,255,cv::THRESH_BINARY);
 
-        Mat subtract_threshold;
+        cv::Mat subtract_threshold;
         subtract(splited_channels[0],splited_channels[2],subtract_threshold);
-        threshold(subtract_threshold,subtract_threshold,110,255,THRESH_BINARY);
+        threshold(subtract_threshold,subtract_threshold,110,255,cv::THRESH_BINARY);
 
         dilate(subtract_threshold,subtract_threshold,element);
         dst = subtract_threshold & gray_threshold;

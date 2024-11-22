@@ -201,6 +201,30 @@ src/Resolver/Resolver.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/rm_auto_aim-Hero.dir/build.make CMakeFiles/rm_auto_aim-Hero.dir/src/Resolver/Resolver.cpp.s
 .PHONY : src/Resolver/Resolver.cpp.s
 
+src/SerialPort/SerialPort.o: src/SerialPort/SerialPort.cpp.o
+.PHONY : src/SerialPort/SerialPort.o
+
+# target to build an object file
+src/SerialPort/SerialPort.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rm_auto_aim-Hero.dir/build.make CMakeFiles/rm_auto_aim-Hero.dir/src/SerialPort/SerialPort.cpp.o
+.PHONY : src/SerialPort/SerialPort.cpp.o
+
+src/SerialPort/SerialPort.i: src/SerialPort/SerialPort.cpp.i
+.PHONY : src/SerialPort/SerialPort.i
+
+# target to preprocess a source file
+src/SerialPort/SerialPort.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rm_auto_aim-Hero.dir/build.make CMakeFiles/rm_auto_aim-Hero.dir/src/SerialPort/SerialPort.cpp.i
+.PHONY : src/SerialPort/SerialPort.cpp.i
+
+src/SerialPort/SerialPort.s: src/SerialPort/SerialPort.cpp.s
+.PHONY : src/SerialPort/SerialPort.s
+
+# target to generate assembly for a file
+src/SerialPort/SerialPort.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rm_auto_aim-Hero.dir/build.make CMakeFiles/rm_auto_aim-Hero.dir/src/SerialPort/SerialPort.cpp.s
+.PHONY : src/SerialPort/SerialPort.cpp.s
+
 src/Tracker/Tracker.o: src/Tracker/Tracker.cpp.o
 .PHONY : src/Tracker/Tracker.o
 
@@ -339,6 +363,9 @@ help:
 	@echo "... src/Resolver/Resolver.o"
 	@echo "... src/Resolver/Resolver.i"
 	@echo "... src/Resolver/Resolver.s"
+	@echo "... src/SerialPort/SerialPort.o"
+	@echo "... src/SerialPort/SerialPort.i"
+	@echo "... src/SerialPort/SerialPort.s"
 	@echo "... src/Tracker/Tracker.o"
 	@echo "... src/Tracker/Tracker.i"
 	@echo "... src/Tracker/Tracker.s"

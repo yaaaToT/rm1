@@ -31,7 +31,7 @@ Light Armor::extendLight(const Light & light)
 
 
 // 排序完成后状态： 左上角为0 顺时针排序
-void Armor::sortLightPoints(Point2f points[4],std::vector<cv::Point2f>& new_points)
+void Armor::sortLightPoints(cv::Point2f points[4],std::vector<cv::Point2f>& new_points)
 {
     cv::Point2f temp_point;
     for (size_t i = 0; i < 4; i++)
