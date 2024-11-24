@@ -2,12 +2,16 @@
 #define DESIGN_OUTPOST_H
 #include "../armor_detector/armor.h"
 #include "../armor_detector/ArmorDetetion.h"
+#include "../Tracker/Predictor.h"
+#include "../SerialPort/UDPSender.h"
+#include "glog/logging.h"
 #include "newArray.h"
 #include "Array.h"
+#include "params.h"
 #include "../debug.h"
-#include "opencv2/opencv.hpp"
-//#include "opencv2/core/eigen.hpp"
 #include "Eigen/Dense"
+#include "opencv2/opencv.hpp"
+#include "opencv2/core/eigen.hpp"
 #include "sophus/se3.hpp"
 #include "sophus/so3.hpp"
 #include "ceres/ceres.h"
@@ -20,14 +24,14 @@ class PoseSolver
 public:
     explicit PoseSolver();
     //更新辅瞄
-    cv::Point2f antiTop(std::vector<ArmorBlob>&armors,double delta_t,/*const SerialPortData&imu_data,*//*SerialPort*SerialPort_*/bool&getTarget);
-    bool getPoseInCamera(std::vector<ArmorBlob> &armors, double delta_t, /*const SerialPortData imu_data, SerialPort* SerialPort_, */int &this_frame_class, int &last_frame_class);
-    cv::Point2f outpostMode(std::vector<ArmorBlob> &armors, double delta_t, /*const SerialPortData& imu_data, SerialPort* SerialPort_,*/ bool& getTarget);
-    cv::Point2f greenShoot(std::vector<cv::Rect2f> green, double delta_t, /*const SerialPortData &imu_data, SerialPort *SerialPort_,*/bool &getCenter);
-            bool adjustToPoint(cv::Point2f greenTarget, cv::Point2f cameraTarget, /*const SerialPortData &imu_data*/
+    cv::Point2f antiTop(std::vector<ArmorBlob>&armors,double delta_t,const SerialPortData&imu_data,SerialPort*SerialPort_,bool&getTarget);
+    bool getPoseInCamera(std::vector<ArmorBlob> &armors, double delta_t, const SerialPortData imu_data, SerialPort* SerialPort_, int &this_frame_class, int &last_frame_class);
+    cv::Point2f outpostMode(std::vector<ArmorBlob> &armors, double delta_t, const SerialPortData& imu_data, SerialPort* SerialPort_, bool& getTarget);
+    cv::Point2f greenShoot(std::vector<cv::Rect2f> green, double delta_t, const SerialPortData &imu_data, SerialPort *SerialPort_,bool &getCenter);
+            bool adjustToPoint(cv::Point2f greenTarget, cv::Point2f cameraTarget, const SerialPortData &imu_data,
                                            int& modeNum,bool quickStart=false,bool restart=false);
-            cv::Point2f halfoutpostMode(std::vector<ArmorBlob> &armors, double delta_t /*const SerialPortData& imu_data, SerialPort* SerialPort_*/);
-            void sentinelMode(std::vector<ArmorBlob> &armors, double delta_t /*const SerialPortData& imu_data, SerialPort* SerialPort_*/);
+            cv::Point2f halfoutpostMode(std::vector<ArmorBlob> &armors, double delta_t ,const SerialPortData& imu_data, SerialPort* SerialPort_);
+            void sentinelMode(std::vector<ArmorBlob> &armors, double delta_t ,const SerialPortData& imu_data, SerialPort* SerialPort_);
             void clearCircle();
             void clearSentinel();
             cv::Point2f reproject(cv::Point3f center);  // 将中心进行重投影
@@ -38,8 +42,8 @@ private:
                     void setDistortionCoefficients(double k_1, double k_2, double p_1, double p_2, double k_3);
                     void setimu(float pitch, float yaw, float roll);
 
-                    Sophus::SE3d solveArmor(ArmorBlob& armors /*const SerialPortData& imu_data*/);
-                    void solveArmorBA(ArmorBlob& armors /*const SerialPortData& imu_data*/);
+                    Sophus::SE3d solveArmor(ArmorBlob& armors,const SerialPortData& imu_data);
+                    void solveArmorBA(ArmorBlob& armors,const SerialPortData& imu_data);
                     float calcDiff(const ArmorBlob& a, const ArmorBlob& b);
                     float cosineLaw(float a, float b, float c);
                     int chooseArmor(const std::vector<ArmorBlob>& armors);
@@ -64,7 +68,7 @@ private:
                                                        cv::Point3f(length_of_big, height_of_big, 0.f),
                                                        cv::Point3f(-length_of_big, height_of_big, 0.f)};
 
-//                    Predictor* predictor;
+                    Predictor* predictor;
 
                     // 解算pnp需要的装甲板坐标
                     std::vector<cv::Point3f> points_3d;
@@ -74,9 +78,9 @@ private:
                     std::vector<cv::Mat> rvecs;
 
                     // TODO 增加一个udp发送，用于调试
-//                            UDPSender *udpsender = new UDPSender("192.168.1.11", 3000);
-//                            PoseDataFrame outpostPoseDataFrame;
-//                            CenterFrame centerFrame;
+                            UDPSender *udpsender = new UDPSender("192.168.1.11", 3000);
+                            PoseDataFrame outpostPoseDataFrame;
+                            CenterFrame centerFrame;
 
                             cv::Mat camera_matrix;
                             cv::Mat distortion_coefficients;
@@ -102,9 +106,10 @@ private:
 
                             Sophus::SE3d camera_to_world; // imu's world
 
-//                            // Predictor* predictor;
+                            // Predictor* predictor;
 
                             ArmorBlob last_armor;
+                            ArmorBlob armor;
 
    //  ***************************************************************************
     /*
@@ -166,9 +171,6 @@ private:
 
             RollingArray<int> filtered_pitch = RollingArray<int>(100);
 
-            // RollingArray<cv::Point3d> outpost_pixel = RollingArray<cv::Point3d>(100);
-            // RollingArray<cv::Point3d> outpost = RollingArray<cv::Point3d>(100);
-
             // 创建outpost
             newRollingArray outpost = newRollingArray(120);     // 100fps
 
@@ -182,22 +184,21 @@ private:
             ceres::LossFunction* loss = nullptr;
             // antiTop
             // 用一个set存储并排序所有的armor
-            std::vector<Armor> armors_set;
+            std::vector<ArmorBlob> armors_set;
             std::vector<std::chrono::steady_clock::time_point> time;
             // 用一个vector存储每一个armor到达最近位置的时间
             std::vector<std::chrono::milliseconds> timeInZone;
             // 发弹延迟
             double tmp_time=163; // 由链路决定的发弹延迟
 
-//            double time_bias=OutpostParam::time_bias;
+            double time_bias=OutpostParam::time_bias;
 
-            //double time_bias_inverse = OutpostParam::time_bias_inverse;
-            //double time_bias = 70;
-            //double time_bias_inverse = -150;
+            double time_bias_inverse = OutpostParam::time_bias_inverse;
+
             const std::string target_mode_str[4] = {"NOT_GET_TARGET", "CONTINOUS_GET_TARGET", "LOST_BUMP", "DETECT_BUMP"};
             // TODO 在这里写死了弹丸速度
- //           double speed = GlobalParam::SHOOT_SPEED;
-//            GimbalPose solveGimbalPose(Point3d shootTarget);
+            double speed = GlobalParam::SHOOT_SPEED;
+//            GimbalPose solveGimbalPose(cv::Point3d shootTarget);
 
 
 };

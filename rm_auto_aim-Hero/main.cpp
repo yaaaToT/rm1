@@ -24,11 +24,11 @@ Kalmanfilter     kalman;        // 卡尔曼对象
 ArmorDetetion    bridge_link;   // 自瞄处理器对象
 
 // 串口对象
-/*Uart InfoPort;
+//Uart InfoPort;
 int  fd_serial    = 0;
-bool serial_state = 0;*/
+bool serial_state = 0;
 
-//bool ishave_track = false;
+bool ishave_track = false;
 
 //HostComputerData  RobotInfo;        // 发送
 //GroundChassisData MainControlInfo;  // 接收
@@ -41,32 +41,6 @@ float time_ = 0;
 
 int init_sign = 0;
 
-
-// 降低视频帧率的函数
-/*void reduceFPS(cv::VideoCapture& capture, double targetFps) {
-    // 获取原始视频的帧率
-    double originalFps = capture.get(cv::CAP_PROP_FPS);
-    //std::cout << "Original FPS: " << originalFps << std::endl;
-
-    // 计算每多少帧取一帧
-    int skipFrames = static_cast<int>(originalFps / targetFps);
-    //std::cout << "Skip Frames: " << skipFrames << std::endl;
-
-    cv::Mat frame;
-    int frameCount = 0;
-    while (capture.read(frame)) {
-        frameCount++;
-        if (frameCount % skipFrames == 0) {
-            cv::imshow("Reduced Frame Rate Video", frame);
-            cv::waitKey(1);
-        }
-    }
-    //cap.release();
-    //cv::destroyAllWindows();
-}*/
-
-
-
 void* ImageProcess(void*)
 {
     //camera.runCamera();
@@ -77,7 +51,6 @@ void* ImageProcess(void*)
     //VideoCapture cap("/home/yaaa/下载/f37bdc35-7d1f-47e7-aae0-d45d249f72f4.mp4");
 
     //前哨站
-    //VideoCapture cap("/home/yaaa/output.mp4");
     //VideoCapture cap("/home/yaaa/下载/0.mp4");
 
 
@@ -93,11 +66,6 @@ void* ImageProcess(void*)
 
     //int frameWidth=1280/*cap.get(CAP_PROP_FRAME_WIDTH)*/;
     //int frameHeight=1024/*cap.get(CAP_PROP_FRAME_HEIGHT)*/;
-
-    int x = 160;
-    int y = 250;
-    int roiWidth = 190;
-    int roiHeight = 250;
 
     //VideoWriter writer(output_path,VideoWriter::fourcc('a','v','c','1'),60,Size(frameWidth,frameHeight),true);
     cv::Mat src;
@@ -122,7 +90,7 @@ void* ImageProcess(void*)
             bridge_link.Image_init(src);
 
             // 串口读取数据
-            //InfoPort.GetMode(fd_serial, MainControlInfo);
+//            InfoPort.GetMode(fd_serial, MainControlInfo);
             /****
              *
              * 模式选择判断
@@ -131,7 +99,7 @@ void* ImageProcess(void*)
 
             // 自瞄模式
 //            MainControlInfo.mode = ENERGY_MODE;
-            //MainControlInfo.mode = ARMOR_MODE;
+//            MainControlInfo.mode = ARMOR_MODE;
             //if (MainControlInfo.mode == ARMOR_MODE)
             //{
 
