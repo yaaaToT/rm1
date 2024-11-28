@@ -86,6 +86,15 @@ void PoseSolver::update_delta_t(double &delta_time){
     delta_t=delta_time;
 }
 
+/**
+ * @brief
+ *
+ * @param armor 指定的要解算位姿的装甲板
+ * @param imu_data 当前的imu数据，包括pitch、yaw、roll，都是相对于世界坐标系的数据
+ *                 pitch、roll数据是根据实际得到的，yaw轴数据是相当于初始上电时的基准来的
+ *                 pitch 当前云台与水平面的夹角
+ */
+
 Sophus::SE3d PoseSolver::solveArmor(ArmorBlob&armor,const GroundChassisData &imu_data){
     // 装甲板的位姿
     const static Sophus::SE3d armor_pose(Eigen::Matrix3d::Identity(),Eigen::Vector3d(0,0,0));
@@ -160,6 +169,246 @@ Sophus::SE3d PoseSolver::solveArmor(ArmorBlob&armor,const GroundChassisData &imu
     armor.z=trans.z;
 
     return armor_to_world;
+
+}
+
+static int offset_x=432+416/2;
+static int offset_y=408+416/2;
+
+GimbalPose PoseSolver::solveGimbalPose(cv::Point3d shootTarget){
+    shootTarget.y=(shootTarget.y==0?1e-6:shootTarget.y);
+    GimbalPose gimbalPose;
+    gimbalPose.yaw=atan(-shootTarget.x/shootTarget.y);
+    double distance=sqrt(shootTarget.x*shootTarget.x+shootTarget.y*shootTarget.y); // 此处为平面距离
+    gimbalPose.pitch=atan(shootTarget.z/distance);
+
+    double theta=gimbalPose.pitch;
+    double delta_z;
+    double k1=0.47*1.169*(2*M_PI*0.02125*0.02125)/2/0.041;
+    double center_distance=distance;  //距离
+    double gravity=9.8;
+    double flyTime;
+    for(int i=0;i<100;i++)
+    {
+        // 计算炮弹的飞行时间
+        flyTime=(pow(2.718281828,k1*center_distance)-1)/(k1*speed*cos(theta));
+        delta_z=shootTarget.z-speed*sin(theta)*flyTime/cos(theta)+
+                0.5*gravity*flyTime*flyTime/cos(theta)/cos(theta);
+        if(fabs(delta_z)<0.000001)
+            break;
+        theta-=delta_z/(-(speed*flyTime)/pow(cos(theta),2)+
+                        gravity*flyTime*flyTime/(speed*speed)*sin(theta)/pow(cos(theta),3));
+    }
+
+    gimbalPose.pitch=(theta/M_PI*180)*100;
+    return gimbalPose;
+
+}
+
+bool PoseSolver::getPoseInCamera(std::vector<ArmorBlob> &armors, double delta_t, const GroundChassisData imu_data,
+                                 Uart *SerialPort_, int &this_frame_class, int &last_frame_class){
+    static int last_pitch,last_yaw;
+
+    if(armors.size()<1)
+        return false;   //没有目标
+
+    for(ArmorBlob &a:armors)
+        solveArmor(a,imu_data);
+    ArmorBlobs candidates;
+
+    right_clicked=imu_data.right_clicked; // 接收到发送的右击数据，右击重置中心装甲板
+    if(last_right_clicked==0&&right_clicked==1)
+        first=true;
+    if(first){ // 按下右键时瞄准中心装甲
+        first=false;
+        // 按照距离中心的距离来进行排序，找到最靠近中心的装甲板
+        if(StateParam::state==AUTOAIM_WITH_ROI){
+            // 远距离
+            sort(armors.begin(),armors.end(),[](const ArmorBlob &a,const ArmorBlob &b)->bool{
+                const cv::Rect &r1=a.rect;
+                const cv::Rect &r2=b.rect;
+                return abs(r1.x + r1.y + r1.height / 2 + r1.width / 2 - offset_x - offset_y) <
+                        abs(r2.x + r2.height / 2 - offset_x + r2.y + r2.width / 2 - 1280 / 2 - offset_y);
+            });
+        }else {
+            // 近距离辅瞄
+            sort(armors.begin(),armors.end(),[](const ArmorBlob &a,const ArmorBlob &b)->bool{
+                const cv::Rect &r1=a.rect;
+                const cv::Rect &r2=b.rect;
+                return abs(r1.x+r1.y+r1.height/2+r1.width/2-offset_x-offset_y)<
+                       abs(r2.x+r2.height/2-offset_x+r2.y+r2.width/2-1280/2-offset_y);
+            });
+        }
+        // 找出距离中心最近的装甲板
+        armor=armors.at(0);
+        // 最中心的装甲板优先级最高，操作手瞄准的是最高优先级的装甲板 top_pri 就是操作手开启辅瞄时指定的跟踪目标(最靠近中心的部分)
+        top_pri=armor._class;   // 设定优先级
+     }
+
+    //中心最近的装甲板
+    int target=chooseArmor(armors);
+
+    // 选中的目标
+    SerialParam::send_data.num=target; // 当前辅瞄选定的目标
+
+    //筛选出 优先级最高的 类别
+    for(const auto &a:armors){
+        if(a._class==target)
+            candidates.push_back(a);
+    }
+
+    // 没有符合的装甲板，可能是调帧，减少错误
+    if(candidates.size()<1)
+        return false;
+
+    if(candidates.size()>1){
+        sort(candidates.begin(),candidates.end(),[&](const ArmorBlob &a,const ArmorBlob &b) {
+            return calcDiff(a,last_armor)<calcDiff(b,last_armor);
+        });
+    }
+    // 选择和上一帧识别的装甲板距离最近的那一个装甲板
+    armor=candidates.at(0);
+
+    // candidates 都是装甲板和上一帧锁定的装甲板类别一致的
+    // 都更新 last_armor
+    if(target==last_armor._class){
+        // 按照和上一帧出现的装甲板距离进行降序排序(相当于一个追踪的效果)
+
+        // 调帧缓冲
+        if(lost_cnt<20&&calcDiff(armor,last_armor)>0.3){
+            // 如果距离太远就认为进入掉帧，掉帧之后仍选取上一次的位置作为当前位置
+            armor=last_armor;
+            lost_cnt++;
+        }else{
+            lost_cnt=0;
+            armor=candidates.at(0);     // 更新最近的
+        }
+
+        bool has_two_armor=false;
+        cv::Point3d armor1=cv::Point3d(candidates[0].x,candidates[0].y,candidates[0].z);
+        cv::Point3d armor2=cv::Point3d(0,0,0);
+        if(candidates.size()>=2){
+            has_two_armor=true;
+            armor2=cv::Point3d(candidates[1].x,candidates[1].y,candidates[1].z);
+        }
+
+        float delta_time=delta_t; // 类型转换
+        Angle_t tmp_angle;
+        if(false){
+
+            tmp_angle=predictor->Predict(armor1,armor2,has_two_armor,0,imu_data,delta_time);
+            // pitch 已经计算过，增加补偿即可，yaw要重新计算
+
+            double tmp_pitch=0;
+            // 得到的pitch和yaw都是角度
+            // 5m左右
+
+            if(tmp_angle.distance<4)                   //小于4m
+                tmp_pitch=(tmp_angle.pitch+1)*180+120;
+            else if(tmp_angle.distance<5.5)            // 小于5.5m
+                tmp_pitch=(tmp_angle.pitch+1)*180+140;
+            else                                       // 大于5.5m,6m以上
+                tmp_pitch=(tmp_angle.pitch+1)*180+150;
+
+            SerialParam::send_data.pitch=tmp_pitch;
+
+            double tmp_yaw=tmp_angle.yaw*100;
+            tmp_yaw+=-0.0*100;          // TODO: 进行补偿
+            while(abs(tmp_yaw-imu_data.yaw)>9000){
+                if(tmp_yaw-imu_data.yaw>=9000)
+                    tmp_yaw-=18000;
+                else
+                    tmp_yaw+=18000;
+            }
+            SerialParam::send_data.yaw=tmp_yaw;
+
+            SerialParam::send_data.shootStatus=1;
+
+            last_armor=armor; // 上一次识别到的armor
+            return true;      // 返回跟踪
+        }
+
+        // 没有预测，只有跟随
+        armor1.y=(armor1.y==0?1e-6:armor1.y);
+        tmp_angle.yaw=atan(-armor1.x/armor.y);
+        tmp_angle.distance=sqrt(armor1.x*armor1.x+armor1.y*armor1.y+armor1.z*armor1.z);
+        tmp_angle.pitch=atan(armor1.z/tmp_angle.distance);
+
+        double theta=tmp_angle.pitch;
+        double delta_z;
+        double k1_c=0.47;
+
+        double k1=k1_c*1.169*(2*M_PI*0.02125*0.02125)/2/0.041;
+        double center_distance=tmp_angle.distance;    // 距离
+        if(candidates[0].is_big_armor) center_distance=center_distance/1.08;
+        double gravity=9.8;
+        for(int i=0;i<100;i++){
+            // 计算炮弹飞行时间
+            double t=(pow(2.718281828,k1*center_distance)-1)/(k1*speed*cos(theta));
+            delta_z=armor1.z-speed*sin(theta)*t/cos(theta)+
+                    0.5*gravity*t*t/cos(theta)/cos(theta);
+            if(fabs(delta_z)<0.000001)
+                break;
+            theta-=delta_z/(-(speed*t)/pow(cos(theta),2)+
+                            gravity*t*t/(speed*speed)*sin(theta)/pow(cos(theta),3));
+
+        }
+        double tmp_pitch=(theta/M_PI*180)*180;
+
+        if(GlobalParam::SOCKET){
+            outpostPoseDataFrame.x=imu_data.yaw/100.;
+            outpostPoseDataFrame.y=tmp_angle.distance;
+            outpostPoseDataFrame.z=SerialParam::recv_data.yaw/100.;
+
+            outpostPoseDataFrame.pitch=armor.angle;
+            outpostPoseDataFrame.yaw=imu_data.yaw;
+            outpostPoseDataFrame.roll=imu_data.roll;
+
+            udpsender->send(outpostPoseDataFrame);
+        }
+
+        SerialParam::send_data.shootStatus=1; // 实际击打
+
+        SerialParam::send_data.pitch=tmp_pitch;
+
+        double tmp_yaw=tmp_angle.yaw/M_PI*180*100;
+        tmp_yaw+=0*100;         // TODO: 进行补偿
+        while(abs(tmp_yaw-imu_data.yaw)>9000){
+            if(tmp_yaw-imu_data.yaw>=9000)
+                tmp_yaw-=18000;
+            else
+                tmp_yaw+=18000;
+        }
+        SerialParam::send_data.yaw=tmp_yaw;
+
+        double filter_ratio_yaw=0.3;
+        double filter_ratio_pitch=0.7;
+
+        bool useFilter=!first;
+        if(abs(SerialParam::send_data.yaw-last_yaw)>300||abs(SerialParam::send_data.pitch-last_pitch)>100){
+            useFilter=false;
+        }
+        if(useFilter){
+            SerialParam::send_data.yaw=last_yaw*filter_ratio_yaw+SerialParam::send_data.yaw*(1-filter_ratio_yaw);
+            SerialParam::send_data.pitch=last_pitch*filter_ratio_pitch+SerialParam::send_data.pitch*(1-filter_ratio_pitch);
+        }
+        last_yaw=SerialParam::send_data.yaw;
+        last_pitch=SerialParam::send_data.pitch;
+        last_armor=armor; // 上一次识别到的armor
+        return true;
+    }else{
+        // 掉帧缓冲
+        if(lost_cnt<20)
+            lost_cnt++;
+        else{
+            lost_cnt=0;
+            predictor->resetPredictor();
+        }
+        last_armor=armor; // 上一次识别到的armor
+        first=false;
+        return false;
+    }
+
 
 }
 

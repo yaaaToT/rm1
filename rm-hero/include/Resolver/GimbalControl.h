@@ -8,6 +8,12 @@
 const double PI      = 3.1415926535; //π
 const float  GRAVITY = 9.78f;        //重力g
 
+struct GimbalPose{
+    double pitch;
+    double yaw;
+    double roll;
+};
+
 class GimbalControl{
 public:
     GimbalControl(){}

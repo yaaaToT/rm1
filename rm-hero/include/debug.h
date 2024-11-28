@@ -19,9 +19,9 @@ enum IFKF{
 enum Mode{
     NONE,           // 不用
     ARMOR_MODE,     // 装甲板模式
-    ENERGY_MODE,    // 能量机关模式
+    OUTPOST_MODE,    // 前哨站模式
     BASE_MODE,      // 基地模式
-    GREENSHOT_MODE,      // 绿灯吊射模式
+    GREENLightSHOT_MODE,      // 绿灯吊射模式
 
 };
 

@@ -36,6 +36,7 @@ add_executable(rm-hero main.cpp
         include/outpost/outpost.h
         include/Tracker/Tracker.h
         include/Tracker/Predictor.h
+        include/Tracker/bumper.h
         include/debug.h
         src/armor_detector/ArmorDetetion.cpp
         src/armor_detector/armor.cpp

@@ -4,8 +4,10 @@
 #include "../armor_detector/armor.h"
 #include "../armor_detector/ArmorDetetion.h"
 #include "../Tracker/Predictor.h"
+#include "../Tracker/bumper.h"
 #include "../SerialPort/UDPSender.h"
 #include "../SerialPort/SerialPort.h"
+#include "../Resolver/GimbalControl.h"
 #include "params.h"
 #include "newArray.h"
 #include "Array.h"
@@ -32,7 +34,7 @@ public:
     explicit PoseSolver();
     //更新辅瞄
     cv::Point2f antiTop(std::vector<ArmorBlob>&armors,double delta_t,const GroundChassisData&imu_data,Uart*SerialPort_,bool&getTarget);
-//    bool getPoseInCamera(std::vector<ArmorBlob> &armors, double delta_t, const SerialPortData imu_data, SerialPort* SerialPort_, int &this_frame_class, int &last_frame_class);
+    bool getPoseInCamera(std::vector<ArmorBlob> &armors, double delta_t, const GroundChassisData imu_data, Uart* SerialPort_, int &this_frame_class, int &last_frame_class);
 //    cv::Point2f outpostMode(std::vector<ArmorBlob> &armors, double delta_t, const SerialPortData& imu_data, SerialPort* SerialPort_, bool& getTarget);
 //    cv::Point2f greenShoot(std::vector<cv::Rect2f> green, double delta_t, const SerialPortData &imu_data, SerialPort *SerialPort_,bool &getCenter);
             bool adjustToPoint(cv::Point2f greenTarget, cv::Point2f cameraTarget, const GroundChassisData &imu_data,
@@ -191,7 +193,7 @@ private:
             const std::string target_mode_str[4] = {"NOT_GET_TARGET", "CONTINOUS_GET_TARGET", "LOST_BUMP", "DETECT_BUMP"};
             // TODO 在这里写死了弹丸速度
             double speed = GlobalParam::SHOOT_SPEED;
-//            GimbalPose solveGimbalPose(cv::Point3d shootTarget);
+            GimbalPose solveGimbalPose(cv::Point3d shootTarget);
 
 
 };

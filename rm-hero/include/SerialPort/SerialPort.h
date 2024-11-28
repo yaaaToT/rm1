@@ -121,8 +121,8 @@ public:
     int     send_data(int fd, unsigned char* buffer, int Length);
     int     received_data(int fd, unsigned char* buffer, int datalen, int baudrate);
     void    close_serial(int fd);
-    void    GetMode(int& fd, GroundChassisData& data);
-    void    TransformTarPos(int& fd, const HostComputerData& data);
+    void    GetMode(int& fd, GroundChassisData& data);               //接收数据
+    void    TransformTarPos(int& fd, const HostComputerData& data);  //发送数据
 
     void    Recdata(GroundChassisData*imu_data);
     void    Inpdata(HostComputerData*_data_write);
