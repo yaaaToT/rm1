@@ -20,7 +20,7 @@ pthread_t ImagePro;
 cv::Mat              Preprocess_image;
 Trackers         track_obj;     // 追踪器对象
 Resolver         resolver_obj;  // 解算器对象
-Kalmanfilter     kalman;        // 卡尔曼对象
+//Kalmanfilter     kalman;        // 卡尔曼对象
 //MindvisionCamera camera;        // 相机对象
 ArmorDetetion    bridge_link;   // 自瞄处理器对象
 

@@ -114,6 +114,12 @@ struct Armor : public Light {
     int score;      // 击打评分
 };
 
+
+//******************************************************************************************
+
+
+static bool status = false;
+
 class ArmorBlob{
     public:
         ArmorBlob(){
@@ -135,6 +141,24 @@ class ArmorBlob{
     };
 
     typedef std::vector<ArmorBlob> ArmorBlobs;
+
+
+class ArmorFinder {
+    public:
+        bool judgeArmor(const ArmorBlob&);
+        bool matchTwoLightBar(const cv::RotatedRect&, const cv::RotatedRect&);
+        bool getArmor(const cv::RotatedRect&, const cv::RotatedRect&, ArmorBlob& armor);
+        cv::Rect getScaleArmorToRoi(const cv::Rect&);
+        std::vector<int> getExtreme(const ArmorBlob&);
+    private:
+        inline float getAngle(const cv::RotatedRect&);
+        inline bool checkAngleDiff(const cv::RotatedRect& l, const cv::RotatedRect& r);
+        inline bool checkHeightDiff(const cv::RotatedRect& l, const cv::RotatedRect& r);
+        inline bool checkHeightMatch(const cv::RotatedRect& l, const cv::RotatedRect& r);
+        inline bool checkHorizontalDistance(const cv::RotatedRect& l, const cv::RotatedRect& r);
+        inline bool checkDislocation(const cv::RotatedRect& l, const cv::RotatedRect& r);
+
+    };
 
 
 #endif //DESIGN_ARMOR_H
