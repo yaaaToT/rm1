@@ -13,8 +13,6 @@ find_package(Sophus REQUIRED)
 
 
 include_directories(${OpenCV_INCLUDE_DIRS})
-include_directories("/usr/include/eigen3")
-
 
 add_executable(rm_auto_aim-Hero main.cpp
         include/armor_detector/armor.h
@@ -29,13 +27,10 @@ add_executable(rm_auto_aim-Hero main.cpp
         include/Resolver/GimbalControl.h
         include/Resolver/Resolver.h
         include/SerialPort/SerialPort.h
-        include/SerialPort/UDPSender.h
         include/outpost/outpost.h
         include/outpost/Array.h
         include/outpost/newArray.h
-        include/outpost/params.h
         include/Tracker/Tracker.h
-        include/Tracker/Predictor.h
         include/debug.h
         src/armor_detector/ArmorDetetion.cpp
         src/armor_detector/armor.cpp

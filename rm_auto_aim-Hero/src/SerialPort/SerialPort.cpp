@@ -1,234 +1,305 @@
+//
+// Created by johan on 2024/5/4.
+//
 
 #include "../../include/SerialPort/SerialPort.h"
 #include <iostream>
 
-// 固定的从串口读取数据
-    void SerialPort::read_data(Params_ToSerialPort& params)
+unsigned char rdata[255];
+unsigned char Sdata[255];
+static double serialtimer, timerlast;
+
+/// NAME    :CRC8/MAXIM
+/// POLY    :(0x31)->x8 + x5 + x4 + 1
+/// WIDTH   :8
+/// INIT    :00
+/// REFIN   :true
+/// REFOUT  :true
+/// XOROUT  :00
+const uint8_t CRC8_INIT     = 0xff;
+const uint8_t CRC8_TAB[256] = {
+        0x00, 0x5e, 0xbc, 0xe2, 0x61, 0x3f, 0xdd, 0x83, 0xc2, 0x9c, 0x7e, 0x20, 0xa3, 0xfd, 0x1f, 0x41, 0x9d, 0xc3, 0x21, 0x7f, 0xfc, 0xa2, 0x40, 0x1e, 0x5f, 0x01, 0xe3, 0xbd, 0x3e, 0x60, 0x82, 0xdc,
+        0x23, 0x7d, 0x9f, 0xc1, 0x42, 0x1c, 0xfe, 0xa0, 0xe1, 0xbf, 0x5d, 0x03, 0x80, 0xde, 0x3c, 0x62, 0xbe, 0xe0, 0x02, 0x5c, 0xdf, 0x81, 0x63, 0x3d, 0x7c, 0x22, 0xc0, 0x9e, 0x1d, 0x43, 0xa1, 0xff,
+        0x46, 0x18, 0xfa, 0xa4, 0x27, 0x79, 0x9b, 0xc5, 0x84, 0xda, 0x38, 0x66, 0xe5, 0xbb, 0x59, 0x07, 0xdb, 0x85, 0x67, 0x39, 0xba, 0xe4, 0x06, 0x58, 0x19, 0x47, 0xa5, 0xfb, 0x78, 0x26, 0xc4, 0x9a,
+        0x65, 0x3b, 0xd9, 0x87, 0x04, 0x5a, 0xb8, 0xe6, 0xa7, 0xf9, 0x1b, 0x45, 0xc6, 0x98, 0x7a, 0x24, 0xf8, 0xa6, 0x44, 0x1a, 0x99, 0xc7, 0x25, 0x7b, 0x3a, 0x64, 0x86, 0xd8, 0x5b, 0x05, 0xe7, 0xb9,
+        0x8c, 0xd2, 0x30, 0x6e, 0xed, 0xb3, 0x51, 0x0f, 0x4e, 0x10, 0xf2, 0xac, 0x2f, 0x71, 0x93, 0xcd, 0x11, 0x4f, 0xad, 0xf3, 0x70, 0x2e, 0xcc, 0x92, 0xd3, 0x8d, 0x6f, 0x31, 0xb2, 0xec, 0x0e, 0x50,
+        0xaf, 0xf1, 0x13, 0x4d, 0xce, 0x90, 0x72, 0x2c, 0x6d, 0x33, 0xd1, 0x8f, 0x0c, 0x52, 0xb0, 0xee, 0x32, 0x6c, 0x8e, 0xd0, 0x53, 0x0d, 0xef, 0xb1, 0xf0, 0xae, 0x4c, 0x12, 0x91, 0xcf, 0x2d, 0x73,
+        0xca, 0x94, 0x76, 0x28, 0xab, 0xf5, 0x17, 0x49, 0x08, 0x56, 0xb4, 0xea, 0x69, 0x37, 0xd5, 0x8b, 0x57, 0x09, 0xeb, 0xb5, 0x36, 0x68, 0x8a, 0xd4, 0x95, 0xcb, 0x29, 0x77, 0xf4, 0xaa, 0x48, 0x16,
+        0xe9, 0xb7, 0x55, 0x0b, 0x88, 0xd6, 0x34, 0x6a, 0x2b, 0x75, 0x97, 0xc9, 0x4a, 0x14, 0xf6, 0xa8, 0x74, 0x2a, 0xc8, 0x96, 0x15, 0x4b, 0xa9, 0xf7, 0xb6, 0xe8, 0x0a, 0x54, 0xd7, 0x89, 0x6b, 0x35,
+};
+/**
+ * @brief crc8_check 计算crc校验位
+ * @param addr 首位地址
+ * @param len 数据长度
+ * @return
+ */
+uint8_t Uart::crc8_check(uint8_t* addr, int len)
+{
+    uint8_t data;
+    uint8_t crc = CRC8_INIT;  //初始值
+
+    for (; len > 0; len--)
     {
-        while (1)
-        {
-            try
-            {
-                this->readData(params.data);
-            }
-            catch (...)
-            {
-//                DLOG(ERROR) << "catch an error in SerialPort::read_data";
-                break;
-            }
-            usleep(1000);                   // 规定的发送频率
-        }
+        data = *addr++;
+        crc  = crc ^ data;     //与crc初始值异或
+        crc  = CRC8_TAB[crc];  //替换下面for循环
+    }
+
+    return crc;  //返回最终校验值
+}
+/**
+ * @brief 串口发送数据
+ */
+void Uart::TransformTarPos(int& fd, const HostComputerData& data)
+{
+    Sdata[0]  = 0x5A;
+    Sdata[1]  = data.Pitch.c[0];
+    Sdata[2]  = data.Pitch.c[1];
+    Sdata[3]  = data.Pitch.c[2];
+    Sdata[4]  = data.Pitch.c[3];
+    Sdata[5]  = data.Yaw.c[0];
+    Sdata[6]  = data.Yaw.c[1];
+    Sdata[7]  = data.Yaw.c[2];
+    Sdata[8]  = data.Yaw.c[3];
+
+    Sdata[9] = data.if_shoot;
+    Sdata[10] = data.if_real_shoot;
+    Sdata[11]=0;
+    Sdata[12]=0;
+    /// CRC check
+    Sdata[13] = crc8_check(&Sdata[0], 13);
+//    Sdata[13]=0Xa5;
+    write(fd, Sdata, 14);
+}
+
+/**
+ * @brief 串口接受数据
+ */
+void Uart::GetMode(int& fd, GroundChassisData& data)
+{
+    int    i = 0;
+    size_t bytes;
+    ioctl(fd, FIONREAD, &bytes);
+    if (bytes == 0)
         return;
-    }
-
-    SerialPort::SerialPort()
+    bytes = read(fd, rdata, 14);
+    // crc8_check(&rdata[1], 9);
+    for (int i = 0; i < 14; i++)
     {
-        new (this) SerialPort("/dev/ttyACM0");
-    }
-
-    SerialPort::SerialPort(const std::string &port_name)
-    {
-        try
+        if (rdata[i] == 0Xa5)
         {
-//            LOG(INFO)<<"Try to connect to: "<<port_name<<endl;
-            // 创建串口对象
-            this->_serial_port = new boost::asio::serial_port(_io_service, port_name);
-            // 设置波特率
-            this->_serial_port->set_option(boost::asio::serial_port::baud_rate(1000000));
-
-            // 流量控制
-            this->_serial_port->set_option(boost::asio::serial_port::flow_control(boost::asio::serial_port::flow_control::none));
-            // 奇偶校验
-            this->_serial_port->set_option(boost::asio::serial_port::parity(boost::asio::serial_port::parity::none));
-            // 1位停止位
-            this->_serial_port->set_option(boost::asio::serial_port::stop_bits(boost::asio::serial_port::stop_bits::one));
-            // 8位数据位
-            this->_serial_port->set_option(boost::asio::serial_port::character_size(8));
-            // 串口发送数据tmp
-            _data_tmp = (uint8_t *)malloc((size_t)_data_len);
-            pingpong = (uint8_t *)malloc((size_t)_data_len * 2);
+            break;
         }
-        catch (...)
+    }
+    if (rdata[i] == 0Xa5 && /*rdata[i + 13] == 0x5a */crc8_check(&rdata[i], 13))  //&& Verify_CRC8_Check_Sum(rdata,6)
+    {
+
+        ///< yaw
+        data.gain_yaw.c[0] = rdata[i + 1];
+        data.gain_yaw.c[1] = rdata[i + 2];
+        data.gain_yaw.c[2] = rdata[i + 3];
+        data.gain_yaw.c[3] = rdata[i + 4];
+
+        ///< pitch
+        data.gain_pitch.c[0] = rdata[i + 5];
+        data.gain_pitch.c[1] = rdata[i + 6];
+        data.gain_pitch.c[2] = rdata[i + 7];
+        data.gain_pitch.c[3] = rdata[i + 8];
+
+        data.mode  = (int)rdata[i + 9];
+//        std::cout<<data.mode<<std::endl;
+
+        data.color = (int)rdata[i + 10];
+//        std::cout<<data.color<<std::endl;
+
+        data.speed = (int)rdata[i + 11];
+//        std::cout<<data.speed<<std::endl;
+
+        data.zaishimeiyong=(int)rdata[i+12];
+//        std::cout<<data.zaishimeiyong<<std::endl;
+
+    }
+}
+
+Uart::Uart(int speed) {}
+/**
+ *@brief 设置串口通信速率
+ *@param fd 类型 int 打开串口的文件句柄
+ *@param speed 类型 int 串口速度
+ *@return void
+ */
+// static int
+speed_t speed_arr[] = {
+        B921600, B115200, B38400, B19200, B9600, B4800, B2400, B1200, B300, B38400, B19200, B9600, B4800, B2400, B1200, B300,
+};
+speed_t name_arr[] = {
+        921600, 115200, 38400, 19200, 9600, 4800, 2400, 1200, 300, 38400, 19200, 9600, 4800, 2400, 1200, 300,
+};
+void Uart::set_speed(int fd, speed_t speed)
+{
+    int            i;
+    int            status;
+    struct termios Opt;
+    tcgetattr(fd, &Opt);
+    for (i = 0; i < sizeof(speed_arr) / sizeof(int); i++)
+    {
+        if (speed == name_arr[i])
         {
-//            LOG(ERROR) << "create serial port object error! ";
-            std::string port_name_back = "/dev/ttyACM1";
-            try {
-//                LOG(INFO)<<"Try to connect to: "<<port_name_back<<endl;
-                // 创建串口对象
-                this->_serial_port = new boost::asio::serial_port(_io_service, port_name_back);
-                // 设置波特率
-                this->_serial_port->set_option(boost::asio::serial_port::baud_rate(1000000));
-                // 流量控制
-                this->_serial_port->set_option(boost::asio::serial_port::flow_control(boost::asio::serial_port::flow_control::none));
-                // 奇偶校验
-                this->_serial_port->set_option(boost::asio::serial_port::parity(boost::asio::serial_port::parity::none));
-                // 1位停止位
-                this->_serial_port->set_option(boost::asio::serial_port::stop_bits(boost::asio::serial_port::stop_bits::one));
-                // 8位数据位
-                this->_serial_port->set_option(boost::asio::serial_port::character_size(8));
-                // 串口发送数据tmp
-                _data_tmp = (uint8_t *)malloc((size_t)_data_len);
-                pingpong = (uint8_t *)malloc((size_t)_data_len * 2);
-            }
-            catch (...)
+            tcflush(fd, TCIOFLUSH);
+            cfsetispeed(&Opt, speed_arr[i]);
+            cfsetospeed(&Opt, speed_arr[i]);
+            status = tcsetattr(fd, TCSANOW, &Opt);  //
+            if (status != 0)
             {
-//                LOG(ERROR) << "create serial port object error! ";
+                perror("tcsetattr fd1");
+                return;
             }
+            tcflush(fd, TCIOFLUSH);
         }
     }
+}
 
-    SerialPort::~SerialPort()
+/**
+ *@brief 设置串口数据位，停止位和效验位
+ *@param fd 类型 int 打开的串口文件句柄
+ *@param databits 类型 int 数据位 取值 为 7 或者8
+ *@param stopbits 类型 int 停止位 取值为 1 或者2
+ *@param parity 类型 int 效验类型 取值为N,E,O,S
+ */
+int Uart::set_Parity(int fd, int databits, int stopbits, int parity)
+{
+    struct termios options;
+
+    if (tcgetattr(fd, &options) != 0)
     {
-        free(_data_tmp);
-        free(pingpong);
-        delete _serial_port;
+        perror("SetupSerial 1");
+        return (FALSE);
     }
 
-    // boost底层从串口读取数据
-    void SerialPort::serialPortRead(uint8_t *msg, uint8_t max_len)
+    options.c_cflag &= ~static_cast<unsigned int>(CSIZE);
+    switch (databits) /*设置数据位数*/
     {
-        try
+        case 7:
+            options.c_cflag |= CS7;
+            break;
+        case 8:
+            options.c_cflag |= CS8;
+            break;
+        default:
+            fprintf(stderr, "Unsupported data sizen");
+            return (FALSE);
+    }
+
+    switch (parity)
+    {
+        case 'N':
         {
-            read(*_serial_port, boost::asio::buffer(msg, max_len), _err);
+            options.c_cflag &= ~static_cast<unsigned int>(PARENB); /* Clear parity enable */
+            options.c_iflag &= ~static_cast<unsigned int>(INPCK);  /* Enable parity checking */
         }
-        catch (...)
+            break;
+
+        case 'O':
         {
-//            LOG(ERROR) << "readData from serial port error! " << _err.message();
+            options.c_cflag |= (PARODD | PARENB); /* 设置为奇效验*/
+            options.c_iflag |= INPCK;             /* Disnable parity checking */
         }
-    }
+            break;
 
-    // boost底层向串口写入数据
-    void SerialPort::serialPortWrite(uint8_t *msg, int len)
-    {
-        try
+        case 'E':
         {
-            write(*_serial_port, boost::asio::buffer(msg, (size_t)len));
+            options.c_cflag |= PARENB;                             /* Enable parity */
+            options.c_cflag &= ~static_cast<unsigned int>(PARODD); /* 转换为偶效验*/
+            options.c_iflag |= INPCK;                              /* Disnable parity checking */
         }
-        catch (...)
+            break;
+
+        case 'S': /*as no parity*/
         {
-//            LOG(ERROR) << "write to serial port error! ";
+            options.c_cflag &= ~static_cast<unsigned int>(PARENB);
+            options.c_cflag &= ~static_cast<unsigned int>(CSTOPB);
         }
-    }
+            break;
 
-    void SerialPort::addCRC(SerialPortData *msg)
-    {
-        if (!msg)
-            return;
-        msg->crc = getCRC(msg);
-    }
-
-    void SerialPort::addCRC(unsigned char *msg)
-    {
-        if (!msg)
-            return;
-        msg[_data_len_write - 1] = getCRC(msg);
-    }
-
-    uint8_t SerialPort::getCRC(SerialPortData *data)
-    {
-        auto _data = reinterpret_cast<unsigned char *>(data);
-        int dwLength = _data_len - 1;
-        unsigned char ucCRC8 = CRC8_INIT;
-        unsigned char ucIndex;
-        while (dwLength--)
+        default:
         {
-            ucIndex = ucCRC8 ^ (*_data++);
-            ucCRC8 = CRC8_TAB[ucIndex];
+            fprintf(stderr, "Unsupported parityn");
+            return (FALSE);
         }
-        return ucCRC8;
     }
-
-    uint8_t SerialPort::getCRC(unsigned char *data)
+    /* 设置停止位*/
+    switch (stopbits)
     {
-        auto _data = reinterpret_cast<unsigned char *>(data);
-        int dwLength = _data_len_write - 1;
-        unsigned char ucCRC8 = CRC8_INIT;
-        unsigned char ucIndex;
-        while (dwLength--)
-        {
-            ucIndex = ucCRC8 ^ (*_data++);
-            ucCRC8 = CRC8_TAB[ucIndex];
-        }
-
-        return ucCRC8;
+        case 1:
+            options.c_cflag &= ~static_cast<unsigned int>(CSTOPB);
+            break;
+        case 2:
+            options.c_cflag |= CSTOPB;
+            break;
+        default:
+            fprintf(stderr, "Unsupported stop bitsn");
+            return (FALSE);
     }
+    /* Set input parity option */
+    if (parity != 'n')
+        options.c_iflag |= INPCK;
 
-    bool SerialPort::verifyCRC(SerialPortData *data)
+    options.c_cc[VTIME] = 150; /* 设置超时15 seconds*/
+    options.c_cc[VMIN]  = 0;   /* Update the options and do it NOW */
+
+    options.c_cflag &= ~static_cast<unsigned int>(HUPCL);
+    options.c_iflag &= ~static_cast<unsigned int>(INPCK);
+    options.c_iflag |= static_cast<unsigned int>(IGNBRK);
+    options.c_iflag &= ~static_cast<unsigned int>(ICRNL);
+    options.c_iflag &= ~static_cast<unsigned int>(IXON);
+    options.c_lflag &= static_cast<unsigned int>(IEXTEN);
+    options.c_lflag &= ~static_cast<unsigned int>(ECHOK);
+    options.c_lflag &= ~static_cast<unsigned int>(ECHOCTL);
+    options.c_lflag &= ~static_cast<unsigned int>(ECHOKE);
+    options.c_lflag &= ~static_cast<unsigned int>(ONLCR);
+    options.c_oflag = ~static_cast<unsigned int>(ICANON);
+
+    tcflush(fd, TCIFLUSH);
+    if (tcsetattr(fd, TCSANOW, &options) != 0)
     {
-        if (!data)
-            return false;
-        return data->crc == getCRC(data);
+        perror("SetupSerial 3");
+        return (FALSE);
     }
+    return (TRUE);
+}
 
-    // 从串口读取imu数据
-    void SerialPort::readData(SerialPortData *imu_data)
+void Uart::close_serial(int fd)
+{
+    close(fd);
+}
+
+/**
+ *@brief 串口初始化、获取设备号
+ */
+int Uart::Init_serial(int& fdcom, int baud_speed)
+{
+//    if (open("/dev/ttyACM0", O_RDWR | O_NONBLOCK) == -1)
+//    {
+//        fdcom = open("/dev/ttyACM1", O_RDWR | O_NONBLOCK);  // O_NOCTTY | O_NDELAY
+//    }
+//    else
+//    {
+//        fdcom = open("/dev/ttyACM0", O_RDWR | O_NONBLOCK);  // O_NOCTTY | O_NDELAY
+//    }
+    fdcom = open("/dev/ttyACM_my_serial", O_RDWR | O_NONBLOCK);
+
+    if (-1 == fdcom)
     {
-        serialPortRead(_data_tmp, _data_len);
-        memcpy(pingpong + _data_len, _data_tmp, _data_len);
-        for (int start_bit = 0; start_bit < _data_len; start_bit++)
-        {
-            if (pingpong[start_bit] == '!')                                   // 起始位
-            {
-                memcpy(_data_tmp, pingpong + start_bit, _data_len);
-                if (verifyCRC(reinterpret_cast<SerialPortData *>(_data_tmp))) // 满足CRC校验
-                {
-                    imu_data->flag = _data_tmp[1];
-                    imu_data->pitch = (_data_tmp[2] << 8)                     // pitch数据
-                                      | _data_tmp[3];
-                    imu_data->yaw = (((int)_data_tmp[4]) << 24)               // yaw轴数据
-                                    | (((int)_data_tmp[5]) << 16)
-                                    | (((int)_data_tmp[6]) << 8)
-                                    | (_data_tmp[7]);
-                    imu_data->color = _data_tmp[8];                           // 己方颜色
-                    // 时间戳 是从 下位机读上来的
-                    imu_data->time_stamp = (((int)_data_tmp[9]) << 24)        // 时间戳
-                                           | (((int)_data_tmp[10]) << 16)
-                                           | (((int)_data_tmp[11]) << 8)
-                                           | (_data_tmp[12]);
-                    imu_data->roll = (_data_tmp[13] << 8)                     // 己方roll轴
-                                     | _data_tmp[14];
-                    imu_data->right_clicked = _data_tmp[15];                  // 操作手右击（准备就绪）
-
-                    // 读取
-                    imu_data->user_time_bias = _data_tmp[16];                    // 射击速度
-
-                    imu_data->outpost_state = _data_tmp[17];                     // 前哨状态
-                    // DLOG(WARNING) << "color:" << to_string(imu_data->color)  << std::endl;
-                    // DLOG(INFO) << "size of recv: " << _data_len << " right: " << imu_data->right_clicked << " " << _data_tmp[15] << " end";
-                    // DLOG(INFO) << "readData: yaw " << imu_data->yaw << " pitch " << imu_data->pitch;
-                    break;
-                }
-            }
-        }
-        memcpy(pingpong, pingpong + _data_len, _data_len);
+        perror(" Can''t Open Serial Port\n");
+        return -1;
     }
-
-    // 向串口写入数据
-    void SerialPort::writeData(SerialPortWriteData *_data_write)
+    else
+        perror(" Open Serial Port success\n");
+    set_speed(fdcom, baud_speed);
+    if (set_Parity(fdcom, 8, 1, 'N') == FALSE)
     {
-        msg[0] = '!';           // 起始位
-        unsigned char *tmp;
-        msg[1] = 0x05;
-        tmp = (unsigned char *)(&_data_write->pitch);   // pitch轴数据， 2个字节
-        msg[2] = tmp[1];
-        msg[3] = tmp[0];
-        tmp = (unsigned char *)(&_data_write->yaw);     // yaw轴数据， 4个字节
-        msg[4] = tmp[3];
-        msg[5] = tmp[2];
-        msg[6] = tmp[1];
-        msg[7] = tmp[0];
-
-        msg[8] = _data_write->shootStatus;              // 涉及状态
-
-        tmp = (unsigned char *)(&_data_write->time_stamp);  // 时间戳
-        msg[9] = tmp[3];
-        msg[10] = tmp[2];
-        msg[11] = tmp[1];
-        msg[12] = tmp[0];
-
-        msg[13] = _data_write->state;                   // 当前状态
-        msg[14] = _data_write->num;                     // 瞄准的id
-
-        addCRC(msg);
-        serialPortWrite(msg, _data_len_write);
+        printf("Set Parity Errorn\n");
+        exit(0);
     }
+    return 0;
+}

@@ -19,9 +19,6 @@ include_directories("/usr/include/eigen3")
 add_executable(rm-hero main.cpp
         include/armor_detector/armor.h
         include/armor_detector/ArmorDetetion.h
-        include/armor_detector/TargetChooser.h
-        include/armor_detector/classifier.h
-        include/armor_detector/inference.h
         #include/Energy/Energy.h
         include/kalmanfilter/KalmanFilter.h
         #include/mindvision/camera_mindvision_running.h
@@ -43,8 +40,6 @@ add_executable(rm-hero main.cpp
         include/debug.h
         src/armor_detector/ArmorDetetion.cpp
         src/armor_detector/armor.cpp
-        src/armor_detector/TargetChooser.cpp
-        src/armor_detector/inference.cpp
         #src/Energy/Energy.cpp
         #src/mindvision/camera_mindvision_running.cpp
         src/kalmanfilter/KalmanFilter.cpp
@@ -56,17 +51,6 @@ add_executable(rm-hero main.cpp
         src/outpost/outpost.cpp
         src/outpost/params.cpp
         )
-
-include_directories(
-            ${OpenCV_INCLUDE_DIRS}
-            /opt/intel/openvino_2024/runtime/include
-
-    )
-
-    target_link_libraries(${PROJECT_NAME}
-           ${OpenCV_LIBS}
-           /opt/intel/openvino_2024/runtime/lib/intel64/libopenvino.so
-    )
 
 
 target_link_libraries(rm-hero

@@ -1,13 +1,7 @@
 
 #ifndef DESIGN_ARMORDETETION_H
 #define DESIGN_ARMORDETETION_H
-#include "armor.h"
-#include "../outpost/params.h"
-#include "../outpost/outpost.h"
-#include "../Tracker/Predictor.h"
-
-#include "opencv2/opencv.hpp"
-#include "opencv2/dnn.hpp"
+#include"armor.h"
 
 class ArmorDetetion {
 public:
@@ -48,50 +42,6 @@ private:
     std::vector<std::string> class_names_;
     std::vector<std::string> ignore_classes_;
 
-};
-
-
-
-//*********************************************************************************
-
-
-
-//static Ptr<cv::Tracker>tracker;
-
-struct Params_ToDecter{
-//    Image**frame_pp;
-    GroundChassisData*SerialPortData_; // 传出的串口数据
-    bool is_update;
-
-    Params_ToDecter(){
-//        frame_pp=nullptr;
-
-        SerialPortData_=new GroundChassisData();
-        is_update=false;
-    }
-};
-
-class Detector{
-public:
-    explicit Detector();
-    ~Detector()=default;
-//    void setParams(const Params_ToVideo &params_to_video,const Params_ToSerialPort &params_to_serial_port);
-    void startDetect(const Params_ToDecter &param,GroundChassisData*SerialPort_);
-    void outpostMode();
-private:
-    inline void calcGammaTable(float gamma);
-//    inline void drawArmorCorners(Mat&drawing,const ArmorBlob&armor,const Scalar&color);
-    double fitTrajectory(const cv::Point3d&trans,double v);
-//    NumberClassifier classifier=NumberClassifier(0);
-//    unordered_map<int,float>gamma_table;
-    Params_ToDecter _detector_thread_params;
-//    ROIAccelerator *roi_accelerator;
-//            TargetChooser *target_chooser;
-
-            // TODO 增加一个udp发送，用于调试
-            UDPSender * udpsender;
-            PoseDataFrame poseDate;
-            DeltatFrame delta_t_frame;
 };
 
 
